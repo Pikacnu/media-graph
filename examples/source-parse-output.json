@@ -1,0 +1,31 @@
+{
+  "id": "stream-demo",
+  "nodes": {
+    "source": {
+      "id": "source",
+      "node_type": "SourceInput",
+      "properties": {
+        "caps": "video/x-raw,format=RGB,width=2,height=2,framerate=1/1",
+        "is_live": true,
+        "buffer_size": 64
+      },
+      "source_pad_ids": [{"id": "source_src_0"}]
+    },
+    "parse": {
+      "id": "parse",
+      "node_type": "ContainerParse",
+      "sink_pad_ids": [{"id": "parse_sink_0"}],
+      "source_pad_ids": [{"id": "parse_src_0", "properties": {"media_type": "video/x-raw"}}]
+    },
+    "output": {
+      "id": "output",
+      "node_type": "Output",
+      "properties": {"caps": "video/x-raw,format=RGB,width=2,height=2,framerate=1/1", "buffer_size": 8},
+      "sink_pad_ids": [{"id": "output_sink_0"}]
+    }
+  },
+  "links": [
+    {"id": "source_parse", "source_pad_id": "source_src_0", "sink_pad_id": "parse_sink_0"},
+    {"id": "parse_output", "source_pad_id": "parse_src_0", "sink_pad_id": "output_sink_0"}
+  ]
+}

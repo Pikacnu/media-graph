@@ -1,0 +1,43 @@
+name: Build Demo
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  executable:
+    name: Build executable
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Install GStreamer development packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+      - name: Test
+        run: go test ./...
+      - name: Build
+        run: CGO_ENABLED=1 go build -o dist/stream-demo ./cmd/stream-demo
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stream-demo-linux-amd64
+          path: dist/stream-demo
+
+  image:
+    name: Build container image
+    runs-on: ubuntu-latest
+    needs: executable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: stream-things-demo:local
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
