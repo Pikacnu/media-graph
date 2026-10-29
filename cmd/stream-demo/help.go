@@ -76,6 +76,7 @@ func printUsage(w io.Writer) {
   stream-demo inspect [node-type]
   stream-demo check -graph <file.json|file.yaml>
   stream-demo preview [-running http://127.0.0.1:8091]
+  stream-demo version
   stream-demo help
 
 Commands:
@@ -85,6 +86,7 @@ Commands:
   inspect  List registered node types, or inspect one node type.
   check    Validate a graph and report source/parse/link warnings.
   preview  Show the current graph snapshot from a running serve process.
+  version  Print the build version, commit, and GStreamer runtime version.
 
 The running server also exposes GET /stream as an MJPEG preview for the default raw RGB demo output.
 

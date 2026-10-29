@@ -9,6 +9,7 @@ go run ./cmd/stream-demo check -graph ./examples/source-parse-output.yaml
 go run ./cmd/stream-demo apply -graph ./examples/source-parse-output.json
 go run ./cmd/stream-demo run -graph ./graph.yaml -input ./frame.raw
 go run ./cmd/stream-demo serve -graph ./graph.yaml
+go run ./cmd/stream-demo version
 ```
 
 - `check` validates a graph and reports warnings.
@@ -17,6 +18,15 @@ go run ./cmd/stream-demo serve -graph ./graph.yaml
 - `serve` keeps one graph alive until Ctrl+C.
 - `preview` reads a running graph snapshot.
 - `inspect` lists registered node factories and pad arity.
+- `version` prints the build tag, commit, and GStreamer runtime version.
+
+Release binaries are built with `-ldflags` so `version` reports the actual tag. Build locally
+with the same flags to reproduce it:
+
+```bash
+go build -ldflags "-X main.version=v0.1.0-demo -X main.commit=$(git rev-parse --short HEAD) -X main.buildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o ./dist/stream-demo ./cmd/stream-demo
+./dist/stream-demo version
+```
 
 ## Live snapshot and update
 
@@ -78,8 +88,12 @@ A deterministic browser demo can use a `TestSource → Output` graph with raw RG
 
 ```bash
 docker build -t stream-things-demo:local .
+docker run --rm stream-things-demo:local version
 docker run --rm -p 8091:8091 stream-things-demo:local
 ```
+
+The image is built with `VERSION`, `COMMIT`, and `BUILD_DATE` build arguments; the CI
+passes the git tag and commit so `version` inside the container matches the release.
 
 Then use `/healthz`, `/preview`, `/graph`, or `/stream` on port 8091.
 

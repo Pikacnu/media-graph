@@ -33,6 +33,7 @@ go run ./cmd/stream-demo inspect
 go run ./cmd/stream-demo check -graph ./examples/source-parse-output.yaml
 go run ./cmd/stream-demo run -input ./frame.raw
 go run ./cmd/stream-demo serve -graph ./examples/source-parse-output.yaml
+go run ./cmd/stream-demo version
 ```
 
 For the full CLI tutorial, see [docs/CLI.md](./docs/CLI.md).
@@ -71,9 +72,13 @@ Download a release executable and run it directly:
 
 ```bash
 chmod +x ./stream-demo-linux-amd64
+./stream-demo-linux-amd64 version
 ./stream-demo-linux-amd64 inspect
 ./stream-demo-linux-amd64 serve -graph ./examples/source-parse-output.yaml
 ```
+
+`version` prints the release tag, commit, build timestamp, Go toolchain, and the GStreamer
+runtime version. Local builds without `-ldflags` report `dev`.
 
 Load the image archive into Docker:
 

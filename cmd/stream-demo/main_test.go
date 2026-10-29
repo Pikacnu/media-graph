@@ -133,6 +133,18 @@ func TestRunDemoMovesGStreamerBytes(t *testing.T) {
 	}
 }
 
+func TestVersionReportsBuildMetadata(t *testing.T) {
+	var stdout bytes.Buffer
+	if err := run([]string{"version"}, &stdout, &bytes.Buffer{}); err != nil {
+		t.Fatalf("version: %v", err)
+	}
+	for _, want := range []string{"stream-demo dev", "commit none", "gstreamer "} {
+		if !strings.Contains(stdout.String(), want) {
+			t.Fatalf("version missing %q: %q", want, stdout.String())
+		}
+	}
+}
+
 func writeGraphFile(t *testing.T, content, extension string) string {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "graph"+extension)

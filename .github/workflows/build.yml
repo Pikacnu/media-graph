@@ -15,6 +15,14 @@ jobs:
     container: ubuntu:rolling
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Compute build metadata
+        id: meta
+        run: |
+          echo "version=$(git describe --tags --always)" >> "$GITHUB_OUTPUT"
+          echo "commit=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
       - name: Install build dependencies
         run: |
           apt-get update
@@ -26,9 +34,16 @@ jobs:
       - name: Test
         run: go test ./...
       - name: Build
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          COMMIT: ${{ steps.meta.outputs.commit }}
+          BUILD_DATE: ${{ steps.meta.outputs.date }}
         run: |
           mkdir -p dist
-          CGO_ENABLED=1 go build -o dist/stream-demo ./cmd/stream-demo
+          CGO_ENABLED=1 go build \
+            -ldflags "-X main.version=${VERSION} -X main.commit=${COMMIT} -X main.buildDate=${BUILD_DATE}" \
+            -o dist/stream-demo ./cmd/stream-demo
+          dist/stream-demo version
       - uses: actions/upload-artifact@v4
         with:
           name: stream-demo-linux-amd64
@@ -40,14 +55,28 @@ jobs:
     needs: executable
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Compute build metadata
+        id: meta
+        run: |
+          echo "version=$(git describe --tags --always)" >> "$GITHUB_OUTPUT"
+          echo "commit=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
       - uses: docker/setup-buildx-action@v3
       - uses: docker/build-push-action@v6
         with:
           context: .
           load: true
           tags: stream-things-demo:release
+          build-args: |
+            VERSION=${{ steps.meta.outputs.version }}
+            COMMIT=${{ steps.meta.outputs.commit }}
+            BUILD_DATE=${{ steps.meta.outputs.date }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Verify image version
+        run: docker run --rm --entrypoint stream-demo stream-things-demo:release version
       - name: Export image archive
         run: docker save stream-things-demo:release -o /tmp/stream-things-demo-image.tar
       - name: Upload image archive

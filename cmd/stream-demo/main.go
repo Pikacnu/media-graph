@@ -42,6 +42,9 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return runCheck(args[1:], stdout, stderr)
 	case "preview":
 		return runPreview(args[1:], stdout, stderr)
+	case "version":
+		printVersion(stdout)
+		return nil
 	default:
 		return fmt.Errorf("unknown command %q", args[0])
 	}

@@ -17,7 +17,12 @@ WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=1 go build -o /out/stream-demo ./cmd/stream-demo
+ARG VERSION=dev
+ARG COMMIT=none
+ARG BUILD_DATE=unknown
+RUN CGO_ENABLED=1 go build \
+    -ldflags "-X main.version=${VERSION} -X main.commit=${COMMIT} -X main.buildDate=${BUILD_DATE}" \
+    -o /out/stream-demo ./cmd/stream-demo
 
 FROM ubuntu:rolling
 
