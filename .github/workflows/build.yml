@@ -23,21 +23,27 @@ jobs:
           apt-get install -y --no-install-recommends ca-certificates git golang gcc pkg-config libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav
       - name: Compute build metadata
         id: meta
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
         run: |
-          repo="${GITHUB_WORKSPACE:-$PWD}"
-          git config --global --add safe.directory "$repo"
-          version="$(git -C "$repo" describe --tags --always)"
-          commit="$(git -C "$repo" rev-parse --short HEAD)"
-          if [ -z "$version" ] || [ -z "$commit" ]; then
-            echo "could not resolve build metadata from $repo" >&2
+          short="$(printf '%s' "$SHA" | cut -c1-7)"
+          if [ "$REF_TYPE" = "tag" ]; then
+            version="$REF_NAME"
+          else
+            version="$short"
+          fi
+          if [ -z "$version" ] || [ -z "$short" ]; then
+            echo "could not resolve build metadata" >&2
             exit 1
           fi
           {
             echo "version=$version"
-            echo "commit=$commit"
+            echo "commit=$short"
             echo "date=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           } >> "$GITHUB_OUTPUT"
-          echo "building $version ($commit)"
+          echo "building $version ($short)"
       - name: Check GStreamer version
         run: |
           pkg-config --modversion gstreamer-1.0
@@ -78,19 +84,27 @@ jobs:
           fetch-depth: 0
       - name: Compute build metadata
         id: meta
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
         run: |
-          version="$(git describe --tags --always)"
-          commit="$(git rev-parse --short HEAD)"
-          if [ -z "$version" ] || [ -z "$commit" ]; then
+          short="$(printf '%s' "$SHA" | cut -c1-7)"
+          if [ "$REF_TYPE" = "tag" ]; then
+            version="$REF_NAME"
+          else
+            version="$short"
+          fi
+          if [ -z "$version" ] || [ -z "$short" ]; then
             echo "could not resolve build metadata" >&2
             exit 1
           fi
           {
             echo "version=$version"
-            echo "commit=$commit"
+            echo "commit=$short"
             echo "date=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           } >> "$GITHUB_OUTPUT"
-          echo "building $version ($commit)"
+          echo "building $version ($short)"
       - uses: docker/setup-buildx-action@v3
       - uses: docker/build-push-action@v6
         with:
