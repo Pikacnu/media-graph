@@ -9,19 +9,23 @@ jobs:
   executable:
     name: Build executable
     runs-on: ubuntu-latest
+    container: ubuntu:rolling
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-      - name: Install GStreamer development packages
+      - name: Install build dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates git golang gcc pkg-config libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+      - name: Check GStreamer version
+        run: |
+          pkg-config --modversion gstreamer-1.0
+          pkg-config --modversion gstreamer-base-1.0
       - name: Test
         run: go test ./...
       - name: Build
-        run: CGO_ENABLED=1 go build -o dist/stream-demo ./cmd/stream-demo
+        run: |
+          mkdir -p dist
+          CGO_ENABLED=1 go build -o dist/stream-demo ./cmd/stream-demo
       - uses: actions/upload-artifact@v4
         with:
           name: stream-demo-linux-amd64
