@@ -22,7 +22,7 @@ JSON/YAML graph
 | Asset | Purpose |
 | --- | --- |
 | `stream-demo-linux-amd64` | Linux x86-64 executable. Requires GStreamer 1.26+ on the host. |
-| `stream-things-demo-image.tar` | Docker image archive with the GStreamer runtime included. |
+| `stream-things-demo-image.tar.gz` | Docker image archive with the GStreamer runtime included. |
 | `SHA256SUMS` | Checksums for both assets. |
 
 Verify the download:
@@ -43,7 +43,7 @@ chmod +x ./stream-demo-linux-amd64
 ## Run the container image
 
 ```bash
-docker load --input ./stream-things-demo-image.tar
+docker load --input ./stream-things-demo-image.tar.gz
 docker run --rm -p 8091:8091 stream-things-demo:release
 ```
 

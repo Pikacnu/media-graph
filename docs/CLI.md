@@ -104,14 +104,14 @@ requires GStreamer 1.26 or newer on the host. The image includes its GStreamer r
 
 ```bash
 curl -LO https://github.com/Pikacnu/media-graph/releases/latest/download/stream-demo-linux-amd64
-curl -LO https://github.com/Pikacnu/media-graph/releases/latest/download/stream-things-demo-image.tar
+curl -LO https://github.com/Pikacnu/media-graph/releases/latest/download/stream-things-demo-image.tar.gz
 curl -LO https://github.com/Pikacnu/media-graph/releases/latest/download/SHA256SUMS
 sha256sum --check SHA256SUMS
 chmod +x ./stream-demo-linux-amd64
 ```
 
 ```bash
-docker load --input ./stream-things-demo-image.tar
+docker load --input ./stream-things-demo-image.tar.gz
 docker run --rm -p 8091:8091 stream-things-demo:release
 ```
 

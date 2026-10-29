@@ -65,7 +65,7 @@ GitHub Actions builds the executable artifact and exports a Docker/OCI image tar
 The demo release contains:
 
 - `stream-demo-linux-amd64`: Linux x86-64 executable.
-- `stream-things-demo-image.tar`: OCI/Docker image archive.
+- `stream-things-demo-image.tar.gz`: OCI/Docker image archive.
 - `SHA256SUMS`: checksums for both assets.
 
 Download a release executable and run it directly:
@@ -83,7 +83,7 @@ runtime version. Local builds without `-ldflags` report `dev`.
 Load the image archive into Docker:
 
 ```bash
-docker load --input ./stream-things-demo-image.tar
+docker load --input ./stream-things-demo-image.tar.gz
 docker run --rm -p 8091:8091 stream-things-demo:release
 ```
 
