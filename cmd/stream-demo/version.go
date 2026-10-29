@@ -16,6 +16,7 @@ var (
 )
 
 func printVersion(w io.Writer) {
-	fmt.Fprintf(w, "stream-demo %s (commit %s, built %s, %s/%s, %s, gstreamer %s)\n",
-		version, commit, buildDate, runtime.GOOS, runtime.GOARCH, runtime.Version(), gst.VersionString())
+	major, minor, micro, _ := gst.Version()
+	fmt.Fprintf(w, "stream-demo %s (commit %s, built %s, %s/%s, %s, GStreamer %d.%d.%d)\n",
+		version, commit, buildDate, runtime.GOOS, runtime.GOARCH, runtime.Version(), major, minor, micro)
 }

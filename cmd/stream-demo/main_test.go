@@ -138,7 +138,7 @@ func TestVersionReportsBuildMetadata(t *testing.T) {
 	if err := run([]string{"version"}, &stdout, &bytes.Buffer{}); err != nil {
 		t.Fatalf("version: %v", err)
 	}
-	for _, want := range []string{"stream-demo dev", "commit none", "gstreamer "} {
+	for _, want := range []string{"stream-demo dev", "commit none", "GStreamer "} {
 		if !strings.Contains(stdout.String(), want) {
 			t.Fatalf("version missing %q: %q", want, stdout.String())
 		}
