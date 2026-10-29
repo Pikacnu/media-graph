@@ -56,4 +56,31 @@ go build -o ./dist/stream-demo ./cmd/stream-demo
 docker build -t stream-things-demo:local .
 ```
 
-GitHub Actions builds the executable artifact and checks the Docker image build. The workflow does not publish an image.
+GitHub Actions builds the executable artifact and exports a Docker/OCI image tarball. On every
+`v*` tag push, the workflow publishes a GitHub Release containing both assets plus `SHA256SUMS`.
+
+## Release assets
+
+The demo release contains:
+
+- `stream-demo-linux-amd64`: Linux x86-64 executable.
+- `stream-things-demo-image.tar`: OCI/Docker image archive.
+- `SHA256SUMS`: checksums for both assets.
+
+Download a release executable and run it directly:
+
+```bash
+chmod +x ./stream-demo-linux-amd64
+./stream-demo-linux-amd64 inspect
+./stream-demo-linux-amd64 serve -graph ./examples/source-parse-output.yaml
+```
+
+Load the image archive into Docker:
+
+```bash
+docker load --input ./stream-things-demo-image.tar
+docker run --rm -p 8091:8091 stream-things-demo:release
+```
+
+The image exposes the same local control plane on port 8091:
+`/healthz`, `/preview`, `POST /graph`, and `/stream`.

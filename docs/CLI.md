@@ -82,3 +82,24 @@ docker run --rm -p 8091:8091 stream-things-demo:local
 ```
 
 Then use `/healthz`, `/preview`, `/graph`, or `/stream` on port 8091.
+
+## Release downloads
+
+Release pages provide a Linux x86-64 executable and an OCI image archive. The executable
+requires GStreamer 1.26 or newer on the host. The image includes its GStreamer runtime.
+
+```bash
+curl -LO https://github.com/Pikacnu/media-graph/releases/latest/download/stream-demo-linux-amd64
+curl -LO https://github.com/Pikacnu/media-graph/releases/latest/download/stream-things-demo-image.tar
+curl -LO https://github.com/Pikacnu/media-graph/releases/latest/download/SHA256SUMS
+sha256sum --check SHA256SUMS
+chmod +x ./stream-demo-linux-amd64
+```
+
+```bash
+docker load --input ./stream-things-demo-image.tar
+docker run --rm -p 8091:8091 stream-things-demo:release
+```
+
+The release image is an offline archive, not a registry publication. It can be moved
+between Docker hosts without requiring registry credentials.
