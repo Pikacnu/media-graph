@@ -195,13 +195,11 @@ jobs:
             exit 1
           fi
           echo "publishing release for tag ${TAG}"
+          jq -n --arg tag "${TAG}" --rawfile body RELEASE_NOTES.md \
+            '{tag_name: $tag, name: $tag, body: $body, draft: false, prerelease: false, make_latest: "true"}' \
+            > /tmp/release.json
           gh api --method POST "repos/${GITHUB_REPOSITORY}/releases" \
-            -f tag_name="${TAG}" \
-            -f name="${TAG}" \
-            -f body="$(cat RELEASE_NOTES.md)" \
-            -F draft=false \
-            -F prerelease=false \
-            -F make_latest=true >/dev/null
+            --input /tmp/release.json >/dev/null
           gh release upload "${TAG}" \
             --repo "${GITHUB_REPOSITORY}" \
             --clobber \
