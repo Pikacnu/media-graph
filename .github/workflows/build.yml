@@ -167,27 +167,60 @@ jobs:
         run: |
           grep -E "^[0-9a-f]{64}  stream-demo-linux-amd64$" dist/SHA256SUMS
           grep -E "^[0-9a-f]{64}  stream-things-demo-image.tar.gz$" dist/SHA256SUMS
-      - name: Create release
+      - name: Remove stale and draft releases
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
         run: |
-          if gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
-            gh release edit "${GITHUB_REF_NAME}" \
-              --repo "${GITHUB_REPOSITORY}" \
-              --title "${GITHUB_REF_NAME}" \
-              --notes-file RELEASE_NOTES.md
-            gh release upload "${GITHUB_REF_NAME}" \
-              --repo "${GITHUB_REPOSITORY}" \
-              --clobber \
-              dist/stream-demo-linux-amd64 \
-              dist/stream-things-demo-image.tar.gz \
-              dist/SHA256SUMS
-          else
-            gh release create "${GITHUB_REF_NAME}" \
-              --repo "${GITHUB_REPOSITORY}" \
-              --title "${GITHUB_REF_NAME}" \
-              --notes-file RELEASE_NOTES.md \
-              dist/stream-demo-linux-amd64 \
-              dist/stream-things-demo-image.tar.gz \
-              dist/SHA256SUMS
+          set -euo pipefail
+          if [ -z "${TAG}" ]; then
+            echo "ref_name is empty; refusing to manage an untagged release" >&2
+            exit 1
           fi
+          echo "cleaning releases for ${TAG}"
+          drafts="$(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=100" --paginate \
+            --jq '.[] | select(.draft == true) | .id')"
+          for id in ${drafts}; do
+            echo "deleting draft release ${id}"
+            gh api --method DELETE "repos/${GITHUB_REPOSITORY}/releases/${id}" >/dev/null
+          done
+          existing="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq '.id' 2>/dev/null || true)"
+          if [ -n "${existing}" ]; then
+            echo "deleting existing release ${existing} for ${TAG}"
+            gh api --method DELETE "repos/${GITHUB_REPOSITORY}/releases/${existing}" >/dev/null
+          fi
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TAG}" ]; then
+            echo "ref_name is empty; refusing to create an untagged release" >&2
+            exit 1
+          fi
+          echo "publishing release for tag ${TAG}"
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/releases" \
+            -f tag_name="${TAG}" \
+            -f name="${TAG}" \
+            -f body="$(cat RELEASE_NOTES.md)" \
+            -F draft=false \
+            -F prerelease=false \
+            -F make_latest=true >/dev/null
+          gh release upload "${TAG}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --clobber \
+            dist/stream-demo-linux-amd64 \
+            dist/stream-things-demo-image.tar.gz \
+            dist/SHA256SUMS
+      - name: Verify published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          info="$(gh release view "${TAG}" --repo "${GITHUB_REPOSITORY}" --json tagName,isDraft,assets)"
+          echo "$info"
+          echo "$info" | jq -e --arg tag "${TAG}" '.tagName == $tag and .isDraft == false' >/dev/null
+          echo "$info" | jq -e '[.assets[].name] | sort ==
+            ["SHA256SUMS","stream-demo-linux-amd64","stream-things-demo-image.tar.gz"]' >/dev/null
