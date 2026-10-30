@@ -178,17 +178,12 @@ jobs:
             exit 1
           fi
           echo "cleaning releases for ${TAG}"
-          drafts="$(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=100" --paginate \
-            --jq '.[] | select(.draft == true) | .id')"
-          for id in ${drafts}; do
-            echo "deleting draft release ${id}"
+          ids="$(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=100" --paginate \
+            --jq ".[] | select(.draft == true or .tag_name == \"${TAG}\") | .id")"
+          for id in ${ids}; do
+            echo "deleting release ${id}"
             gh api --method DELETE "repos/${GITHUB_REPOSITORY}/releases/${id}" >/dev/null
           done
-          existing="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq '.id' 2>/dev/null || true)"
-          if [ -n "${existing}" ]; then
-            echo "deleting existing release ${existing} for ${TAG}"
-            gh api --method DELETE "repos/${GITHUB_REPOSITORY}/releases/${existing}" >/dev/null
-          fi
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
