@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -22,10 +23,22 @@ func main() {
 	}
 }
 
-func run(args []string, stdout, stderr io.Writer) error {
+func run(args []string, stdout, stderr io.Writer) (err error) {
+	defer func() {
+		if errors.Is(err, flag.ErrHelp) {
+			err = nil
+		}
+	}()
 	if len(args) == 0 || args[0] == "help" || args[0] == "-h" || args[0] == "--help" {
 		printUsage(stdout)
 		return nil
+	}
+	if len(args) == 2 && (args[1] == "-h" || args[1] == "--help") {
+		switch args[0] {
+		case "check", "inspect", "version":
+			printUsage(stdout)
+			return nil
+		}
 	}
 	switch args[0] {
 	case "apply":
@@ -95,6 +108,8 @@ func runDemo(args []string, stdout, stderr io.Writer) error {
 	flags.SetOutput(stderr)
 	graphFile := flags.String("graph", "", "path to DesiredGraph JSON/YAML; defaults to built-in demo graph")
 	inputFile := flags.String("input", "", "input bytes file; defaults to stdin")
+	inputNode := flags.String("input-node", "demo_input", "SourceInput node receiving input bytes")
+	outputNode := flags.String("output-node", "demo_output", "Output node publishing output bytes")
 	chunkSize := flags.Int("chunk-size", 4096, "input chunk size")
 	settle := flags.Duration("settle", 500*time.Millisecond, "time to allow the output sink to flush")
 	if err := flags.Parse(args); err != nil {
@@ -129,11 +144,11 @@ func runDemo(args []string, stdout, stderr io.Writer) error {
 		input = file
 	}
 
-	output, err := subscribeOutput(mediaGraph, "demo_output", "cli", 8)
+	output, err := subscribeOutput(mediaGraph, *outputNode, "cli", 8)
 	if err != nil {
 		return fmt.Errorf("subscribe output: %w", err)
 	}
-	sent, err := sendInput(mediaGraph, "demo_input", input, *chunkSize)
+	sent, err := sendInput(mediaGraph, *inputNode, input, *chunkSize)
 	if err != nil {
 		return fmt.Errorf("send input after %d bytes: %w", sent, err)
 	}

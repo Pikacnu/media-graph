@@ -71,7 +71,7 @@ func runInspect(args []string, stdout, stderr io.Writer) error {
 func printUsage(w io.Writer) {
 	fmt.Fprintln(w, `Usage:
   stream-demo apply -graph <file.json|file.yaml> [-id graph-id]
-  stream-demo run [-graph file.json|file.yaml] [-input file] [-chunk-size bytes]
+  stream-demo run [-graph file.json|file.yaml] [-input file] [-input-node demo_input] [-output-node demo_output] [-chunk-size bytes]
   stream-demo serve -graph <file.json|file.yaml> [-id graph-id] [-listen 127.0.0.1:8091] [-output-node demo_output]
   stream-demo inspect [node-type]
   stream-demo check -graph <file.json|file.yaml>

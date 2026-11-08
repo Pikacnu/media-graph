@@ -20,6 +20,23 @@ go run ./cmd/stream-demo version
 - `inspect` lists registered node factories and pad arity.
 - `version` prints the build tag, commit, and GStreamer runtime version.
 
+Use `<command> -h` or `<command> --help` to print help and exit successfully.
+
+### Input/output node selection for `run`
+
+The built-in byte-input demo defaults to `-input-node demo_input -output-node demo_output`.
+When using `-graph`, select the graph's SourceInput and Output node IDs explicitly if they
+have different names:
+
+```bash
+go run ./cmd/stream-demo run -graph ./graph.yaml -input ./frame.raw -input-node source -output-node output
+```
+
+The input must match the graph's media format. `run` requires a byte-input SourceInput
+and a byte-output Output node; it is not a runner for every graph type. For the autonomous
+TestSource graph, use `serve` instead. The source/parse example is a graph-structure example,
+not a general-purpose raw-frame decoder.
+
 Release binaries are built with `-ldflags` so `version` reports the actual tag. Build locally
 with the same flags to reproduce it:
 
