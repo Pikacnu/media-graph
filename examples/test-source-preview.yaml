@@ -1,0 +1,25 @@
+id: stream-demo
+nodes:
+  test_source:
+    id: test_source
+    node_type: TestSource
+    properties:
+      Pattern: ball
+      Width: 640
+      Height: 360
+      Framerate: 30/1
+      IsLive: true
+    source_pad_ids:
+      - id: test_source_src_0
+  demo_output:
+    id: demo_output
+    node_type: Output
+    properties:
+      Caps: video/x-raw,format=RGB,width=640,height=360,framerate=30/1
+      BufferSize: 8
+    sink_pad_ids:
+      - id: demo_output_sink_0
+links:
+  - id: test_source_output
+    source_pad_id: test_source_src_0
+    sink_pad_id: demo_output_sink_0

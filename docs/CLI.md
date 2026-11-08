@@ -82,7 +82,42 @@ The included examples describe:
 SourceInput → ContainerParse → Output
 ```
 
-A deterministic browser demo can use a `TestSource → Output` graph with raw RGB caps.
+## Self-running browser preview
+
+The included [test-source-preview.yaml](../examples/test-source-preview.yaml) graph uses
+`TestSource → Output` to generate a moving ball at 640×360, 30 fps, with raw RGB output.
+It does not need an input file or an external producer.
+
+Stop any existing server on port 8091, then run from the project root:
+
+```powershell
+go run .\cmd\stream-demo serve -graph .\examples\test-source-preview.yaml -listen 127.0.0.1:8091 -output-node demo_output -width 640 -height 360
+```
+
+In another PowerShell terminal:
+
+```powershell
+Start-Process "http://127.0.0.1:8091/stream"
+go run .\cmd\stream-demo preview -running http://127.0.0.1:8091
+```
+
+Keep the server running while viewing the stream; Ctrl+C stops it, including active
+browser streams. HTTP shutdown allows up to three seconds before forcing connections
+closed; a second Ctrl+C restores the default interrupt behavior. The `-output-node`
+value must match the graph's Output node ID, and `-width`/`-height` must match its raw RGB
+caps. This example uses a width whose RGB rows have no GStreamer alignment padding.
+
+`/preview` and the CLI `preview` command show graph information, not video. Opening
+`/graph` in a browser returns HTTP 405 because that endpoint accepts POST only.
+The source/parse examples wait for external input; they do not generate preview frames.
+
+With the locally built Docker image:
+
+```powershell
+docker run --rm -p 8091:8091 stream-things-demo:local serve -graph examples/test-source-preview.yaml -listen 0.0.0.0:8091 -output-node demo_output -width 640 -height 360
+```
+
+The graph path in this command is inside the Linux container.
 
 ## Docker
 

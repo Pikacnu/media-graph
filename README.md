@@ -36,6 +36,28 @@ go run ./cmd/stream-demo serve -graph ./examples/source-parse-output.yaml
 go run ./cmd/stream-demo version
 ```
 
+### Browser video preview
+
+For a self-running moving test pattern (no input file needed), run from the project root:
+
+```powershell
+go run .\cmd\stream-demo serve -graph .\examples\test-source-preview.yaml -listen 127.0.0.1:8091 -output-node demo_output -width 640 -height 360
+```
+
+In a second PowerShell terminal, open the video:
+
+```powershell
+Start-Process "http://127.0.0.1:8091/stream"
+```
+
+Stop any existing server on port 8091 before starting this example. Keep the server running
+until finished; press Ctrl+C to stop it. The width and height flags must match the graph's
+raw RGB output dimensions.
+
+`/stream` shows MJPEG video; `/preview` returns graph JSON, and the CLI `preview` command
+prints a graph summary. `/graph` accepts POST updates only, not browser GET requests.
+The source/parse examples above wait for external input and do not generate video themselves.
+
 For the full CLI tutorial, see [docs/CLI.md](./docs/CLI.md).
 
 ## AI-Assisted CLI Demo Development

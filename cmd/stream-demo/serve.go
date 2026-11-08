@@ -5,10 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"live_tools/gst_utils/graph"
 
@@ -50,7 +52,12 @@ func runServe(args []string, stdout, stderr io.Writer) error {
 		return fmt.Errorf("start: %w", err)
 	}
 
-	server := &http.Server{Addr: *listen, Handler: serveHandler(mediaGraph, *outputNode, *width, *height)}
+	requests, cancelRequests := context.WithCancel(context.Background())
+	defer cancelRequests()
+	server := &http.Server{
+		Addr: *listen, Handler: serveHandler(mediaGraph, *outputNode, *width, *height),
+		BaseContext: func(net.Listener) context.Context { return requests },
+	}
 	serverErr := make(chan error, 1)
 	go func() { serverErr <- server.ListenAndServe() }()
 
@@ -65,5 +72,22 @@ func runServe(args []string, stdout, stderr io.Writer) error {
 			return fmt.Errorf("control server: %w", err)
 		}
 	}
-	return server.Shutdown(context.Background())
+	stop()
+	cancelRequests()
+	return shutdownServer(server)
+}
+
+func shutdownServer(server *http.Server) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	if err := server.Shutdown(ctx); err != nil {
+		// A slow stream client may block a write even after request cancellation.
+		if closeErr := server.Close(); closeErr != nil {
+			return fmt.Errorf("close control server: %w", closeErr)
+		}
+		if err != context.DeadlineExceeded {
+			return fmt.Errorf("shutdown control server: %w", err)
+		}
+	}
+	return nil
 }
